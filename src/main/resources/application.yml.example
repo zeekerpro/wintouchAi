@@ -1,4 +1,28 @@
 openai:
-  orgId: your-organization-id-here
-  projId: your-project-id-here
-  apiKey: your-api-key-here
+  orgId: your-org-id
+  projId: your-proj-id
+  apiKey: your-api-key
+  model: gpt-4o-mini
+  temperature: 0.7
+  maxTokens: 2000
+
+database:
+  url: jdbc:mysql://localhost:3306/your_database_name
+  username: your_username
+  password: "your_password"
+  driverClassName: com.mysql.cj.jdbc.Driver
+  # Druid specific configurations
+  initialSize: 5
+  minIdle: 5
+  maxActive: 20
+  maxWait: 60000
+  timeBetweenEvictionRunsMillis: 60000
+  minEvictableIdleTimeMillis: 300000
+  validationQuery: SELECT 1
+  testWhileIdle: true
+  testOnBorrow: false
+  testOnReturn: false
+  poolPreparedStatements: true
+  maxPoolPreparedStatementPerConnectionSize: 20
+  filters: stat,wall
+  connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
