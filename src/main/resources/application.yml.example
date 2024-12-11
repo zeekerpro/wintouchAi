@@ -1,0 +1,4 @@
+openai:
+  orgId: your-organization-id-here
+  projId: your-project-id-here
+  apiKey: your-api-key-here
