@@ -1,34 +1,63 @@
 package com.zeeker;
 
+import com.zeeker.config.DatabaseConfig;
 import com.zeeker.config.OpenAiConfig;
-import dev.langchain4j.model.openai.OpenAiChatModel;
+import com.zeeker.service.DatabaseService;
+import com.zeeker.service.OpenAiService;
+import com.zeeker.service.RagService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) {
         try {
-            OpenAiConfig config = OpenAiConfig.load();
-            logger.info("Loaded configuration - Organization ID: {}", 
-                       config.getOrgId());
+            // 加载配置
+            OpenAiConfig openAiConfig = OpenAiConfig.load();
+            DatabaseConfig dbConfig = DatabaseConfig.load();
+            
+            logger.info("Loaded OpenAI configuration");
+            logger.info("Loaded database configuration - URL: {}", dbConfig.getUrl());
 
-            OpenAiChatModel model = OpenAiChatModel.builder()
-                .apiKey(config.getApiKey())
-                .modelName(GPT_4_O_MINI)
-                .build();
+            // 初始化服务
+            DatabaseService databaseService = new DatabaseService(dbConfig);
+            OpenAiService openAiService = new OpenAiService(openAiConfig);
+            RagService ragService = new RagService(databaseService, openAiService);
 
-            try {
-                String answer = model.generate("Say 'Hello World'");
-                logger.info("AI Response: {}", answer);
-            } catch (Exception e) {
-                logger.error("Error while generating response: ", e);
+            // 启动交互式命令行
+            logger.info("Starting interactive session. Type 'exit' to quit.");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+            while (true) {
+                System.out.print("\nEnter your question (or 'exit' to quit): ");
+                String question = reader.readLine();
+
+                if (question == null || "exit".equalsIgnoreCase(question.trim())) {
+                    logger.info("Exiting application...");
+                    break;
+                }
+
+                if (question.trim().isEmpty()) {
+                    System.out.println("Please enter a valid question.");
+                    continue;
+                }
+
+                String answer = ragService.processNaturalLanguageQuery(question);
+                System.out.println("\nAnswer: " + answer);
             }
-        } catch (RuntimeException e) {
-            logger.error("Configuration error: ", e);
+
+            // 关闭资源
+            databaseService.close();
+            logger.info("Application terminated successfully");
+            System.exit(0);
+
+        } catch (Exception e) {
+            logger.error("Application error: ", e);
+            System.exit(1);
         }
     }
 }
